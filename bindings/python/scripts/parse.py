@@ -14,7 +14,7 @@ def valid_children(node):
             - The node in the AST
             - Keys:
                 - cursor: The cursor pointing to a node
-                - filename: 
+                - filename:
                     - The file's name to check if the node belongs to it
                     - Needed to ensure that only symbols belonging to the file gets parsed, not the included files' symbols
                 - depth: The depth of the node (root=0)
@@ -43,11 +43,11 @@ def print_ast(node):
             - The node in the AST
             - Keys:
                 - cursor: The cursor pointing to a node
-                - filename: 
+                - filename:
                     - The file's name to check if the node belongs to it
                     - Needed to ensure that only symbols belonging to the file gets parsed, not the included files' symbols
                 - depth: The depth of the node (root=0)
-    
+
     Returns:
         - None
     """
@@ -77,13 +77,13 @@ def generate_parsed_info(node):
             - The node in the AST
             - Keys:
                 - cursor: The cursor pointing to a node
-                - filename: 
+                - filename:
                     - The file's name to check if the node belongs to it
                     - Needed to ensure that only symbols belonging to the file gets parsed, not the included files' symbols
                 - depth: The depth of the node (root=0)
 
     Returns:
-        - parsed_info (dict): 
+        - parsed_info (dict):
             - Contains key-value pairs of various traits of a node
             - The key 'members' contains the node's children's `parsed_info`
     """
@@ -225,7 +225,8 @@ def parse_file(source, compilation_database_path=None):
 
     # Get compiler arguments
     compilation_commands = get_compilation_commands(
-        compilation_database_path=compilation_database_path, filename=source,
+        compilation_database_path=compilation_database_path,
+        filename=source,
     )
 
     """

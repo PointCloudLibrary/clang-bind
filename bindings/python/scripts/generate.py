@@ -5,7 +5,7 @@ import scripts.utils as utils
 class bind:
     """
     Class containing functions for generating bindings from AST info.
-    
+
     How to use:
         - to_be_filled_after_updation
     """
@@ -134,7 +134,7 @@ class bind:
 
         Parameters:
             - item (dict): the anonymous type item from which to extract fields
-        
+
         Returns:
             - fields (list): A list of items of kind `CursorKind.FIELD_DECL`
         """
@@ -209,7 +209,7 @@ class bind:
             3. Handles field declarations.
             4. Handles class methods.
         """
-        
+
         # TODO: Extract functions, too much nesting
 
         template_class_name = None
@@ -344,7 +344,7 @@ def generate(module_name: str, parsed_info: dict = None, source: str = None) -> 
         - module_name (str): Generated python module's name.
         - parsed_info (dict): Parsed info about a C++ source file.
         - source (str): File name
-    
+
     Returns:
         - lines_to_write (list): Lines to write in the binded file.
     """

@@ -21,7 +21,7 @@ def remove_whitespace(string):
 
     Parameters:
         - string (str)
-    
+
     Returns: The stripped off string.
     """
 
