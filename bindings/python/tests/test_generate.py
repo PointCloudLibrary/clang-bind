@@ -48,15 +48,18 @@ def generate_bindings(cpp_code_block, module_name, tmp_path):
     parsed_info = test_parse.get_parsed_info(
         tmp_path=tmp_path, file_contents=cpp_code_block
     )
+
+    file_include = "pcl" + parsed_info["name"].rsplit("pcl")[-1]
+
     # Get the binded code
     binded_code = generate.generate(module_name=module_name, parsed_info=parsed_info)
     # List to string
     binded_code = "".join(binded_code)
 
-    return remove_whitespace(binded_code)
+    return f"#include<{file_include}>", remove_whitespace(binded_code)
 
 
-def get_expected_string(expected_module_code):
+def get_expected_string(file_include, expected_module_code):
     """
     Returns expected output string after combining inclusions and pybind11's initial lines.
 
@@ -67,7 +70,7 @@ def get_expected_string(expected_module_code):
         - expected_output (str): The stripped off, combined code.
     """
 
-    file_include = "#include <file.cpp>"
+    # file_include = "#include <file.cpp>"
 
     # Get pybind11's intial lines in the form of a string
     initial_pybind_lines = "".join(generate.bind._initial_pybind_lines)
@@ -81,7 +84,7 @@ def get_expected_string(expected_module_code):
 
 def test_struct_without_members(tmp_path):
     cpp_code_block = "struct AStruct {};"
-    output = generate_bindings(
+    file_include, output = generate_bindings(
         tmp_path=tmp_path, cpp_code_block=cpp_code_block, module_name="pcl"
     )
 
@@ -92,7 +95,9 @@ def test_struct_without_members(tmp_path):
     }
     """
 
-    assert output == get_expected_string(expected_module_code=expected_module_code)
+    assert output == get_expected_string(
+        file_include=file_include, expected_module_code=expected_module_code
+    )
 
 
 def test_struct_with_members(tmp_path):
@@ -101,7 +106,7 @@ def test_struct_with_members(tmp_path):
         int aMember;
     };
     """
-    output = generate_bindings(
+    file_include, output = generate_bindings(
         tmp_path=tmp_path, cpp_code_block=cpp_code_block, module_name="pcl"
     )
 
@@ -113,4 +118,6 @@ def test_struct_with_members(tmp_path):
     }
     """
 
-    assert output == get_expected_string(expected_module_code=expected_module_code)
+    assert output == get_expected_string(
+        file_include=file_include, expected_module_code=expected_module_code
+    )
