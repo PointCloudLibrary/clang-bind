@@ -44,7 +44,7 @@ class bind:
             "ANONYMOUS_UNION_DECL": handled_elsewhere,  # in (handle_struct_decl) via get_fields_from_anonymous
             "ANONYMOUS_STRUCT_DECL": handled_elsewhere,  # in (handle_struct_decl) via get_fields_from_anonymous
             "FRIEND_DECL": unsure,
-            "FUNCTION_DECL": unsure,
+            "FUNCTION_DECL": self.handle_function,
             # EXPRs: An expression that refers to a member of a struct, union, class, Objective-C class, etc.
             "CALL_EXPR": handled_by_pybind,
             "UNEXPOSED_EXPR": unsure,
@@ -280,6 +280,15 @@ class bind:
                     self._linelist.append(
                         f'.def("{sub_item["name"]}", py::overload_cast<>(&{self.name}::{sub_item["name"]}))'
                     )
+
+    def handle_function(self) -> None:
+        """
+        Handles `CursorKind.FUNCTION_DECL`
+
+        - Bind the function and its parameter list
+        """
+        details = self._state_stack[-1]
+        self._linelist.append('m.def("{0}", &{0});'.format(details["name"]))
 
     def handle_constructor(self) -> None:
         """
