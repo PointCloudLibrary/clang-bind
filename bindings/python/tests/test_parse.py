@@ -144,7 +144,7 @@ def test_function_decl_without_parameters(tmp_path):
 
     assert func_decl["kind"] == "FUNCTION_DECL"
     assert func_decl["name"] == "aFunction"
-    # assert func_decl["result_type"] = "int"
+    assert func_decl["result_type"] == "int"
 
 
 def test_function_decl_with_parameters(tmp_path):
@@ -157,7 +157,16 @@ def test_function_decl_with_parameters(tmp_path):
 
     assert func_decl["kind"] == "FUNCTION_DECL"
     assert func_decl["name"] == "aFunction"
-    # assert func_decl["result_type"] = "int"
+    assert func_decl["result_type"] == "int"
+
+    first_param = func_decl["members"][0]
+    second_param = func_decl["members"][1]
+
+    assert first_param["name"] == "firstParam"
+    assert first_param["element_type"] == "Int"
+
+    assert second_param["name"] == "secondParam"
+    assert second_param["element_type"] == "Double"
 
 
 def test_simple_call_expr(tmp_path):
