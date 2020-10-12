@@ -134,7 +134,33 @@ def test_parsed_info_structure(tmp_path):
     assert len(parsed_info["members"]) == 0
 
 
-def test_call_expr(tmp_path):
+def test_function_decl_without_parameters(tmp_path):
+    file_contents = """
+    int aFunction();
+    """
+    parsed_info = get_parsed_info(tmp_path=tmp_path, file_contents=file_contents)
+
+    func_decl = parsed_info["members"][0]
+
+    assert func_decl["kind"] == "FUNCTION_DECL"
+    assert func_decl["name"] == "aFunction"
+    # assert func_decl["result_type"] = "int"
+
+
+def test_function_decl_with_parameters(tmp_path):
+    file_contents = """
+    int aFunction(int firstParam, double secondParam);
+    """
+    parsed_info = get_parsed_info(tmp_path=tmp_path, file_contents=file_contents)
+
+    func_decl = parsed_info["members"][0]
+
+    assert func_decl["kind"] == "FUNCTION_DECL"
+    assert func_decl["name"] == "aFunction"
+    # assert func_decl["result_type"] = "int"
+
+
+def test_simple_call_expr(tmp_path):
     file_contents = """
     int aFunction() {
         return 1;

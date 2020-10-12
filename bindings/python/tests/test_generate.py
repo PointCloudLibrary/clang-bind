@@ -87,7 +87,6 @@ def test_function_without_parameters(tmp_path):
     file_include, output = generate_bindings(
         tmp_path=tmp_path, cpp_code_block=cpp_code_block, module_name="pcl"
     )
-    print(output)
 
     expected_module_code = """
     PYBIND11_MODULE(pcl, m){
@@ -105,7 +104,6 @@ def test_function_with_parameters(tmp_path):
     file_include, output = generate_bindings(
         tmp_path=tmp_path, cpp_code_block=cpp_code_block, module_name="pcl"
     )
-    print(output)
 
     expected_module_code = """
     PYBIND11_MODULE(pcl, m){

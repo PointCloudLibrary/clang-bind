@@ -1,5 +1,6 @@
 from context import scripts
 import scripts.utils as utils
+from typing import Any, List, Dict
 
 
 class bind:
@@ -287,8 +288,19 @@ class bind:
 
         - Bind the function and its parameter list
         """
+        parameter_type_list = []
         details = self._state_stack[-1]
-        self._linelist.append('m.def("{0}", &{0});'.format(details["name"]))
+        for sub_item in self.members:
+            if sub_item["kind"] == "PARM_DECL":
+                parameter_type_list.append(f'"{sub_item["name"]}"_a')
+
+        parameter_type_list = ",".join(parameter_type_list)
+        if parameter_type_list:
+            parameter_type_list = "," + parameter_type_list
+
+        self._linelist.append(
+            f'm.def("{self.name}", &{self.name} {parameter_type_list});'
+        )
 
     def handle_constructor(self) -> None:
         """
@@ -304,34 +316,34 @@ class bind:
         # generate parameter type list
         for sub_item in self.members:
             if sub_item["kind"] == "PARM_DECL":
-                if sub_item["element_type"] == "LValueReference":
-                    for sub_sub_item in sub_item["members"]:
-                        if sub_sub_item["kind"] == "TYPE_REF":
-                            # @TODO: Make more robust
-                            type_ref = (
-                                sub_sub_item["name"]
-                                .replace("struct ", "")
-                                .replace("pcl::", "")
-                            )
-                            parameter_type_list.append(f"{type_ref} &")
-                elif sub_item["element_type"] == "Elaborated":
-                    namespace_ref = ""
-                    for sub_sub_item in sub_item["members"]:
-                        if sub_sub_item["kind"] == "NAMESPACE_REF":
-                            namespace_ref += f'{sub_sub_item["name"]}::'
-                        if sub_sub_item["kind"] == "TYPE_REF":
-                            parameter_type_list.append(
-                                f'{namespace_ref}{sub_sub_item["name"]}'
-                            )
-                elif sub_item["element_type"] in ("Float", "Int"):
-                    parameter_type_list.append(f'{sub_item["element_type"].lower()}')
-                else:
-                    parameter_type_list.append(f'{sub_item["element_type"]}')
+                parameter_type_list.append(self.get_parm_types(sub_item))
         parameter_type_list = ",".join(parameter_type_list)
 
         # default ctor `.def(py::init<>())` already inserted while handling struct/class decl
         if parameter_type_list:
             self._linelist.append(f".def(py::init<{parameter_type_list}>())")
+
+    def get_parm_types(self, item: Dict[str, Any]) -> List[str]:
+        if item["element_type"] == "LValueReference":
+            for sub_item in item["members"]:
+                if sub_item["kind"] == "TYPE_REF":
+                    # @TODO: Make more robust
+                    type_ref = (
+                        sub_item["name"].replace("struct ", "").replace("pcl::", "")
+                    )
+                    parameter_type_list = f"{type_ref} &"
+        elif item["element_type"] == "Elaborated":
+            namespace_ref = ""
+            for sub_item in item["members"]:
+                if sub_item["kind"] == "NAMESPACE_REF":
+                    namespace_ref += f'{sub_item["name"]}::'
+                if sub_item["kind"] == "TYPE_REF":
+                    parameter_type_list = f'{namespace_ref}{sub_item["name"]}'
+        elif item["element_type"] in ("Float", "Double", "Int"):
+            parameter_type_list = f'{item["element_type"].lower()}'
+        else:
+            parameter_type_list = f'{item["element_type"]}'
+        return parameter_type_list
 
     def handle_inclusion_directive(self) -> None:
         """
