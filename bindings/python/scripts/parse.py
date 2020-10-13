@@ -97,6 +97,8 @@ def generate_parsed_info(node):
     parsed_info["line"] = cursor.location.line
     parsed_info["column"] = cursor.location.column
     parsed_info["kind"] = cursor.kind.name
+    parsed_info["tokens"] = [x.spelling for x in cursor.get_tokens()]
+
     if cursor.is_anonymous():
         parsed_info["kind"] = "ANONYMOUS_" + parsed_info["kind"]
     parsed_info["name"] = cursor.spelling

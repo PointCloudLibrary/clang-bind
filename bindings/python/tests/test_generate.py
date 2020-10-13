@@ -82,6 +82,40 @@ def get_expected_string(file_include, expected_module_code):
     return expected_output
 
 
+def test_function_without_parameters(tmp_path):
+    cpp_code_block = "void AFunction();"
+    file_include, output = generate_bindings(
+        tmp_path=tmp_path, cpp_code_block=cpp_code_block, module_name="pcl"
+    )
+
+    expected_module_code = """
+    PYBIND11_MODULE(pcl, m){
+        m.def("AFunction", &AFunction);
+    }
+    """
+
+    assert output == get_expected_string(
+        file_include=file_include, expected_module_code=expected_module_code
+    )
+
+
+def test_function_with_parameters(tmp_path):
+    cpp_code_block = "void AFunction(int firstParam, double secondParam);"
+    file_include, output = generate_bindings(
+        tmp_path=tmp_path, cpp_code_block=cpp_code_block, module_name="pcl"
+    )
+
+    expected_module_code = """
+    PYBIND11_MODULE(pcl, m){
+        m.def("AFunction", &AFunction, "firstParam"_a, "secondParam"_a);
+    }
+    """
+
+    assert output == get_expected_string(
+        file_include=file_include, expected_module_code=expected_module_code
+    )
+
+
 def test_struct_without_members(tmp_path):
     cpp_code_block = "struct AStruct {};"
     file_include, output = generate_bindings(
