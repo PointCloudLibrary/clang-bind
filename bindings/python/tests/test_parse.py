@@ -446,6 +446,37 @@ def test_template_type_single_parameter(tmp_path):
     assert template_type_parameter["name"] == "P"
 
 
+def test_template_instantiate_single_parameter(tmp_path):
+    file_contents = """
+    template
+    struct AStruct<int>;
+    template
+    class AClass<char>;
+
+    template
+    void aFunction<bool>(bool);
+    """
+    parsed_info = get_parsed_info(tmp_path=tmp_path, file_contents=file_contents)
+    print(parsed_info["members"])
+    # As per generate.py:219, there should be some member with "kind" `TYPE_REF`
+    print(
+        "Member details:",
+        {sub_item["name"]: sub_item["members"] for sub_item in parsed_info["members"]},
+    )
+    # Doesn't detect 3 items in next line
+    assert len(parsed_info["members"]) == 3
+
+    struct_inst = parsed_info["members"][0]
+    class_inst = parsed_info["members"][1]
+    func_inst = parsed_info["members"][2]
+
+    assert struct_inst["kind"] == "STRUCT_DECL"
+    assert struct_inst["kind_is_declaration"] == True
+
+    assert class_inst["kind"] == "CLASS_DEC"
+    assert class_inst["kind_is_declaration"] == True
+
+
 def test_default_delete_constructor(tmp_path):
     file_contents = """
     class aClass {
