@@ -43,7 +43,7 @@ jobs:
 
       # Add dist-package to path to enable apt installed python3-clang import
       - name: Add dist-packages to PYTHONPATH
-        run: echo "::set-env name=PYTHONPATH::${PYTHON_PATH}:/usr/lib/python3/dist-packages"
+        run: echo "PYTHONPATH=${PYTHON_PATH}:/usr/lib/python3/dist-packages" >> $GITHUB_ENV
       - name: Display PYTHONPATH
         run: python -c "import sys; print('\n'.join(sys.path))"
 
