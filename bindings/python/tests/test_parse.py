@@ -371,7 +371,6 @@ def test_class_template(tmp_path):
     assert template_type_parameter["access_specifier"] == "PUBLIC"
 
 
-
 def test_template_non_type_parameter(tmp_path):
     file_contents = """
     template <int N>
