@@ -1,3 +1,4 @@
+import os
 import sys
 import clang.cindex as clang
 
@@ -267,12 +268,15 @@ def main():
         parsed_info = parse_file(source, args.compilation_database_path)
 
         # Output path for dumping the parsed info into a json file
+        output_dir=utils.join_path(args.json_output_path, "json")
         output_filepath = utils.get_output_path(
             source=source,
-            output_dir=utils.join_path(args.json_output_path, "json"),
-            split_from="pcl",
+            output_dir=output_dir,
+            split_from=args.project_root,
             extension=".json",
         )
+        out_rel_path = os.path.relpath(output_filepath, args.json_output_path)
+        print(f"Producing ./{out_rel_path}")
 
         # Dump the parsed info at output path
         utils.dump_json(filepath=output_filepath, info=parsed_info)
