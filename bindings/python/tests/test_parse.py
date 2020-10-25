@@ -447,33 +447,44 @@ def test_template_type_single_parameter(tmp_path):
 
 def test_template_instantiate_single_parameter(tmp_path):
     file_contents = """
+    template <typename T>
+    struct AStruct { T value; };
+    template <typename T>
+    class AClass { const T privateValue; }
+    template <class T>
+    T aFunction(T&& aValue) { return aValue; }
+
     template
     struct AStruct<int>;
     template
     class AClass<char>;
-
     template
-    void aFunction<bool>(bool);
+    bool aFunction(bool&&);
     """
     parsed_info = get_parsed_info(tmp_path=tmp_path, file_contents=file_contents)
     print(parsed_info["members"])
     # As per generate.py:219, there should be some member with "kind" `TYPE_REF`
     print(
         "Member details:",
-        {sub_item["name"]: sub_item["members"] for sub_item in parsed_info["members"]},
+        [{sub_item["name"]: sub_item["kind"]} for sub_item in parsed_info["members"]],
     )
     # Doesn't detect 3 items in next line
-    assert len(parsed_info["members"]) == 3
+    assert len(parsed_info["members"]) == 6
 
     struct_inst = parsed_info["members"][0]
-    class_inst = parsed_info["members"][1]
-    func_inst = parsed_info["members"][2]
 
     assert struct_inst["kind"] == "STRUCT_DECL"
     assert struct_inst["kind_is_declaration"] == True
 
-    assert class_inst["kind"] == "CLASS_DEC"
+    class_inst = parsed_info["members"][1]
+
+    assert class_inst["kind"] == "CLASS_DECL"
     assert class_inst["kind_is_declaration"] == True
+
+    func_inst = parsed_info["members"][2]
+
+    assert func_inst["kind"] == "FUNCTION_DECL"
+    assert func_inst["kind_is_declaration"] == True
 
 
 def test_default_delete_constructor(tmp_path):
