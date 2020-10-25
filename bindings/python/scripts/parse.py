@@ -268,7 +268,7 @@ def main():
         parsed_info = parse_file(source, args.compilation_database_path)
 
         # Output path for dumping the parsed info into a json file
-        output_dir=utils.join_path(args.json_output_path, "json")
+        output_dir = utils.join_path(args.json_output_path, "json")
         output_filepath = utils.get_output_path(
             source=source,
             output_dir=output_dir,
