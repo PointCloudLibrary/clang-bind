@@ -1,0 +1,52 @@
+cmake_minimum_required(VERSION 3.10)
+project (${project.name}_pybind11)
+
+% if not cmake.no_conan:
+include (conan.cmake)
+
+conan_cmake_run (CONANFILE conanfile.txt
+  BASIC_SETUP
+  CMAKE_TARGETS
+  BUILD missing
+  % if conan.keep_rpaths:
+    KEEP_RPATHS
+  % endif
+  % if conan.no_output_dirs:
+    NO_OUTPUT_DIRS
+  % endif
+  % if conan.arch:
+    ARCH ${conan.arch}
+  % endif
+  % if conan.build_type:
+    BUILD_TYPE ${conan.build_type}
+  % endif
+  % if conan.profile:
+    PROFILE ${conan.profile}
+  % endif
+  % if conan.profile_auto:
+    PROFILE_AUTO ${conan.profile_auto}
+  % endif
+)
+% endif
+
+# `find_package` can be replaced with `add_subdirectory` by a power user
+# https://pybind11.readthedocs.io/en/stable/compiling.html#find-package-vs-add-subdirectory
+find_package(pybind11 REQUIRED)
+
+set (CMAKE_CXX_STANDARD ${cmake.cpp_standard})
+
+pybind11_add_module (${project.name}
+  % if pybind11.lib_type:
+    # for MODULE or SHARED
+    ${pybind11.lib_type}
+  % endif
+  % if pybind11.thin_lto:
+    THIN_LTO
+  % endif
+  % if pybind11.optimise_for_size:
+    OPT_SIZE
+  % endif
+  % for file in files:
+    file
+  % endfor
+)
