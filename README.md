@@ -20,7 +20,7 @@ sudo apt-get install -y libclang-11-dev python3-clang-11
 
 `pip install -r requirements.txt`
 
-# Generating bindings
+# Demonstration
 
 1. Go to `clang-bind/bindings/python/tests/test_project/` folder
 2. Create a build folder
