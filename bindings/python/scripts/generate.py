@@ -1,6 +1,8 @@
+from typing import Any, List, Dict
+import os
+
 from context import scripts
 import scripts.utils as utils
-from typing import Any, List, Dict
 
 
 class bind:
@@ -427,12 +429,15 @@ def main():
     for source in args.files:
         source = utils.get_realpath(path=source)
         lines_to_write = generate(module_name="pcl", source=source)
+        output_dir = utils.join_path(args.pybind11_output_path, "pybind11-gen")
         output_filepath = utils.get_output_path(
             source=source,
-            output_dir=utils.join_path(args.pybind11_output_path, "pybind11-gen"),
+            output_dir=output_dir,
             split_from="json",
             extension=".cpp",
         )
+        out_rel_path = os.path.relpath(output_filepath, args.pybind11_output_path)
+        print(f"Producing ./{out_rel_path}")
         utils.write_to_file(filename=output_filepath, linelist=lines_to_write)
 
 

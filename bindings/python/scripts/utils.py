@@ -35,7 +35,9 @@ def get_output_path(source, output_dir, split_from, extension):
     """
 
     # split_path: contains the path after splitting. For split_path = pcl, contains the path as seen in the pcl directory
-    _, split_path = source.split(f"{split_from}{os.sep}", 1)
+    split_path = source.split(f"{split_from}{os.sep}", 1)
+    # handle the case where there's nothing to split
+    split_path = split_path[1] if len(split_path) == 2 else split_path[0]
 
     # relative_dir: contains the relative output path for the json file
     # source_filename: contains the source's file name
@@ -93,8 +95,13 @@ def parse_arguments(script):
         )
         parser.add_argument(
             "--json_output_path",
-            default=get_parent_directory(file=__file__),
+            default=os.getcwd(),
             help="Output path for generated json",
+        )
+        parser.add_argument(
+            "--project-root",
+            default=os.path.dirname(os.getcwd()),
+            help="Path to split to make output paths shorter",
         )
         parser.add_argument("files", nargs="+", help="The source files to parse")
 
@@ -103,7 +110,7 @@ def parse_arguments(script):
         parser.add_argument("files", nargs="+", help="JSON input")
         parser.add_argument(
             "--pybind11_output_path",
-            default=get_parent_directory(file=__file__),
+            default=os.getcwd(),
             help="Output path for generated cpp",
         )
 
