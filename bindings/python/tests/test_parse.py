@@ -342,18 +342,32 @@ def test_class_template(tmp_path):
     file_contents = """
     template <typename T>
     struct AStruct {};
+
+    template <typename U>
+    class AClass {};
     """
     parsed_info = get_parsed_info(tmp_path=tmp_path, file_contents=file_contents)
 
-    class_template = parsed_info["members"][0]
+    struct_template = parsed_info["members"][0]
+
+    assert struct_template["kind"] == "CLASS_TEMPLATE"
+    assert struct_template["name"] == "AStruct"
+
+    template_type_parameter = struct_template["members"][0]
+
+    assert template_type_parameter["kind"] == "TEMPLATE_TYPE_PARAMETER"
+    assert template_type_parameter["name"] == "T"
+    assert template_type_parameter["access_specifier"] == "PUBLIC"
+
+    class_template = parsed_info["members"][1]
 
     assert class_template["kind"] == "CLASS_TEMPLATE"
-    assert class_template["name"] == "AStruct"
+    assert class_template["name"] == "AClass"
 
     template_type_parameter = class_template["members"][0]
 
     assert template_type_parameter["kind"] == "TEMPLATE_TYPE_PARAMETER"
-    assert template_type_parameter["name"] == "T"
+    assert template_type_parameter["name"] == "U"
     assert template_type_parameter["access_specifier"] == "PUBLIC"
 
 
@@ -396,29 +410,81 @@ def test_function_template(tmp_path):
     assert template_type_parameter["access_specifier"] == "PUBLIC"
 
 
-def test_template_type_parameter(tmp_path):
+def test_template_type_single_parameter(tmp_path):
     file_contents = """
     template <typename T>
     struct AStruct {};
+
+    template <typename U>
+    class AClass {};
 
     template <typename P>
     void aFunction() {}
     """
     parsed_info = get_parsed_info(tmp_path=tmp_path, file_contents=file_contents)
 
-    class_template = parsed_info["members"][0]
-    template_type_parameter = class_template["members"][0]
+    struct_template = parsed_info["members"][0]
+    template_type_parameter = struct_template["members"][0]
 
     assert template_type_parameter["kind"] == "TEMPLATE_TYPE_PARAMETER"
     assert template_type_parameter["element_type"] == "Unexposed"
     assert template_type_parameter["name"] == "T"
 
-    function_template = parsed_info["members"][1]
+    class_template = parsed_info["members"][1]
+    template_type_parameter = class_template["members"][0]
+
+    assert template_type_parameter["kind"] == "TEMPLATE_TYPE_PARAMETER"
+    assert template_type_parameter["element_type"] == "Unexposed"
+    assert template_type_parameter["name"] == "U"
+
+    function_template = parsed_info["members"][2]
     template_type_parameter = function_template["members"][0]
 
     assert template_type_parameter["kind"] == "TEMPLATE_TYPE_PARAMETER"
     assert template_type_parameter["element_type"] == "Unexposed"
     assert template_type_parameter["name"] == "P"
+
+
+def test_template_instantiate_single_parameter(tmp_path):
+    file_contents = """
+    template <typename T>
+    struct AStruct { T value; };
+    template <typename T>
+    class AClass { const T privateValue; }
+    template <class T>
+    T aFunction(T&& aValue) { return aValue; }
+
+    template
+    struct AStruct<int>;
+    template
+    class AClass<char>;
+    template
+    bool aFunction(bool&&);
+    """
+    parsed_info = get_parsed_info(tmp_path=tmp_path, file_contents=file_contents)
+    print(parsed_info["members"])
+    # As per generate.py:219, there should be some member with "kind" `TYPE_REF`
+    print(
+        "Member details:",
+        [{sub_item["name"]: sub_item["kind"]} for sub_item in parsed_info["members"]],
+    )
+    # Doesn't detect 3 items in next line
+    assert len(parsed_info["members"]) == 6
+
+    struct_inst = parsed_info["members"][0]
+
+    assert struct_inst["kind"] == "STRUCT_DECL"
+    assert struct_inst["kind_is_declaration"] == True
+
+    class_inst = parsed_info["members"][1]
+
+    assert class_inst["kind"] == "CLASS_DECL"
+    assert class_inst["kind_is_declaration"] == True
+
+    func_inst = parsed_info["members"][2]
+
+    assert func_inst["kind"] == "FUNCTION_DECL"
+    assert func_inst["kind_is_declaration"] == True
 
 
 def test_default_delete_constructor(tmp_path):
