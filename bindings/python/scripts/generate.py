@@ -148,10 +148,14 @@ class bind:
         fields = []
         for sub_item in item["members"]:
             # base condition
-            if sub_item["kind"] == "FIELD_DECL":
+            if sub_item["cursor_kind"]["name"] == "FIELD_DECL":
                 fields.append(sub_item)
             # recurse
-            elif sub_item["kind"] in ("ANONYMOUS_UNION_DECL", "ANONYMOUS_STRUCT_DECL"):
+            # @TODO Fix this, `ANONYMOUS_kind` was removed, now test via `is_anonymous`
+            elif sub_item["cursor_kind"]["name"] in (
+                "ANONYMOUS_UNION_DECL",
+                "ANONYMOUS_STRUCT_DECL",
+            ):
                 fields += bind.get_fields_from_anonymous(item=sub_item)
         return fields
 
@@ -173,8 +177,8 @@ class bind:
         """
 
         self.item = item
-        self.kind = self.item["kind"]
-        self.name = self.item["name"]
+        self.kind = self.item["cursor_kind"]["name"]
+        self.name = self.item["cursor"]["spelling"]
         self.members = self.item["members"]
         self.depth = self.item["depth"]
 
@@ -218,17 +222,21 @@ class bind:
         template_class_name = None
         template_class_name_python = None
         for sub_item in self.members:
-            if sub_item["kind"] == "TYPE_REF":
+            if sub_item["cursor_kind"]["name"] == "TYPE_REF":
                 # TODO: Will this case only apply to templates?
                 # @TODO: Make more robust
-                type_ref = sub_item["name"].replace("struct ", "").replace("pcl::", "")
+                type_ref = (
+                    sub_item["cursor"]["spelling"]
+                    .replace("struct ", "")
+                    .replace("pcl::", "")
+                )
                 template_class_name = f"{self.name}<{type_ref}>"
                 template_class_name_python = f"{self.name}_{type_ref}"
 
         base_class_list = [
-            sub_item["name"]
+            sub_item["cursor"]["spelling"]
             for sub_item in self.members
-            if sub_item["kind"] == "CXX_BASE_SPECIFIER"
+            if sub_item["cursor_kind"]["name"] == "CXX_BASE_SPECIFIER"
         ]
 
         base_class_list_string = [
@@ -253,35 +261,35 @@ class bind:
         for sub_item in self.members:
             fields = self.get_fields_from_anonymous(sub_item)
             for field in fields:
-                if field["element_type"] == "ConstantArray":
+                if field["type"]["kind"] == "ConstantArray":
                     # TODO: FIX: readwrite, not readonly
                     self._linelist.append(
-                        f'.def_property_readonly("{field["name"]}", []({self.name}& obj) {{return obj.{field["name"]}; }})'  # float[ ' + f'obj.{sub_item["name"]}' + '.size()];} )'
+                        f'.def_property_readonly("{field["cursor"]["spelling"]}", []({self.name}& obj) {{return obj.{field["cursor"]["spelling"]}; }})'  # float[ ' + f'obj.{sub_item["cursor"]["spelling"]}' + '.size()];} )'
                     )
                 else:
                     self._linelist.append(
-                        f'.def_readwrite("{field["name"]}", &{self.name}::{field["name"]})'
+                        f'.def_readwrite("{field["cursor"]["spelling"]}", &{self.name}::{field["cursor"]["spelling"]})'
                     )
 
         for sub_item in self.members:
 
             # handle field declarations
-            if sub_item["kind"] == "FIELD_DECL":
-                if sub_item["element_type"] == "ConstantArray":
+            if sub_item["cursor_kind"]["name"] == "FIELD_DECL":
+                if sub_item["type"]["kind"] == "ConstantArray":
                     self._linelist.append(
-                        f'.def_property_readonly("{sub_item["name"]}", []({self.name}& obj) {{return obj.{sub_item["name"]}; }})'  # float[ ' + f'obj.{sub_item["name"]}' + '.size()];} )'
+                        f'.def_property_readonly("{sub_item["cursor"]["spelling"]}", []({self.name}& obj) {{return obj.{sub_item["cursor"]["spelling"]}; }})'  # float[ ' + f'obj.{sub_item["cursor"]["spelling"]}' + '.size()];} )'
                     )
                 else:
                     self._linelist.append(
-                        f'.def_readwrite("{sub_item["name"]}", &{self.name}::{sub_item["name"]})'
+                        f'.def_readwrite("{sub_item["cursor"]["spelling"]}", &{self.name}::{sub_item["cursor"]["spelling"]})'
                     )
 
             # handle class methods
-            elif sub_item["kind"] == "CXX_METHOD":
+            elif sub_item["cursor_kind"]["name"] == "CXX_METHOD":
                 # TODO: Add template args, currently blank
-                if sub_item["name"] not in ("PCL_DEPRECATED"):
+                if sub_item["cursor"]["spelling"] not in ("PCL_DEPRECATED"):
                     self._linelist.append(
-                        f'.def("{sub_item["name"]}", py::overload_cast<>(&{self.name}::{sub_item["name"]}))'
+                        f'.def("{sub_item["cursor"]["spelling"]}", py::overload_cast<>(&{self.name}::{sub_item["cursor"]["spelling"]}))'
                     )
 
     def handle_function(self) -> None:
@@ -293,8 +301,8 @@ class bind:
         parameter_type_list = []
         details = self._state_stack[-1]
         for sub_item in self.members:
-            if sub_item["kind"] == "PARM_DECL":
-                parameter_type_list.append(f'"{sub_item["name"]}"_a')
+            if sub_item["cursor_kind"]["name"] == "PARM_DECL":
+                parameter_type_list.append(f'"{sub_item["cursor"]["spelling"]}"_a')
 
         parameter_type_list = ",".join(parameter_type_list)
         if parameter_type_list:
@@ -317,7 +325,7 @@ class bind:
 
         # generate parameter type list
         for sub_item in self.members:
-            if sub_item["kind"] == "PARM_DECL":
+            if sub_item["cursor_kind"]["name"] == "PARM_DECL":
                 parameter_type_list.append(self.get_parm_types(sub_item))
         parameter_type_list = ",".join(parameter_type_list)
 
@@ -326,25 +334,29 @@ class bind:
             self._linelist.append(f".def(py::init<{parameter_type_list}>())")
 
     def get_parm_types(self, item: Dict[str, Any]) -> List[str]:
-        if item["element_type"] == "LValueReference":
+        if item["type"]["kind"] == "LValueReference":
             for sub_item in item["members"]:
-                if sub_item["kind"] == "TYPE_REF":
+                if sub_item["cursor_kind"]["name"] == "TYPE_REF":
                     # @TODO: Make more robust
                     type_ref = (
-                        sub_item["name"].replace("struct ", "").replace("pcl::", "")
+                        sub_item["cursor"]["spelling"]
+                        .replace("struct ", "")
+                        .replace("pcl::", "")
                     )
                     parameter_type_list = f"{type_ref} &"
-        elif item["element_type"] == "Elaborated":
+        elif item["type"]["kind"] == "Elaborated":
             namespace_ref = ""
             for sub_item in item["members"]:
-                if sub_item["kind"] == "NAMESPACE_REF":
-                    namespace_ref += f'{sub_item["name"]}::'
-                if sub_item["kind"] == "TYPE_REF":
-                    parameter_type_list = f'{namespace_ref}{sub_item["name"]}'
-        elif item["element_type"] in ("Float", "Double", "Int"):
-            parameter_type_list = f'{item["element_type"].lower()}'
+                if sub_item["cursor_kind"]["name"] == "NAMESPACE_REF":
+                    namespace_ref += f'{sub_item["cursor"]["spelling"]}::'
+                if sub_item["cursor_kind"]["name"] == "TYPE_REF":
+                    parameter_type_list = (
+                        f'{namespace_ref}{sub_item["cursor"]["spelling"]}'
+                    )
+        elif item["type"]["kind"] in ("Float", "Double", "Int"):
+            parameter_type_list = f'{item["type"]["kind"].lower()}'
         else:
-            parameter_type_list = f'{item["element_type"]}'
+            parameter_type_list = f'{item["type"]["kind"]}'
         return parameter_type_list
 
     def handle_inclusion_directive(self) -> None:
@@ -417,7 +429,7 @@ def generate(module_name: str, parsed_info: dict = None, source: str = None) -> 
     if parsed_info:
         bind_object = bind(root=parsed_info, module_name=module_name)
         # Extract filename from parsed_info (TRANSLATION_UNIT's name contains the filepath)
-        filename = "pcl" + parsed_info["name"].rsplit("pcl")[-1]
+        filename = "pcl" + parsed_info["cursor"]["spelling"].rsplit("pcl")[-1]
         return combine_lines()
     else:
         raise Exception("Empty dict: parsed_info")
