@@ -157,7 +157,8 @@ class CategorizedArgs:
 
 
 def main():
-    cmake = Template(filename="CMakeLists.txt.in")
+    file_dir = os.path.dirname(__file__)
+    cmake = Template(filename=os.path.join(file_dir, "CMakeLists.txt.in"))
     cat = CategorizedArgs()
     all_args = cat.categorized_args
     data = cmake.render(files=[], **(all_args))
