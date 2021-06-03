@@ -1,9 +1,10 @@
 from context import scripts
 import clang.cindex as clang
 from scripts.parse import Parse
+from scripts.compilation_database import CompilationDatabase
 
 
-def create_compilation_database(tmp_path, filepath):
+def get_compilation_database_path(tmp_path, filepath):
     input = tmp_path / "compile_commands.json"
     x = [
         {
@@ -25,14 +26,19 @@ def get_parsed_info(tmp_path, file_contents):
     with open(source_path, "w") as f:
         f.write(str(file_contents))
 
-        compiler_arguments = next(
-            Parse.get_compilation_arguments(
-                compilation_database_path=create_compilation_database(
-                    tmp_path=tmp_path, filepath=source_path
-                ),
-                filename=source_path,
-            )
+        compilation_database_path = get_compilation_database_path(
+            tmp_path=tmp_path, filepath=source_path
         )
+
+        compilation_database = CompilationDatabase(
+            compilation_database_path=compilation_database_path
+        )
+
+        compilation_arguments = compilation_database.get_compilation_arguments(
+            filename=source_path
+        )
+
+        compiler_arguments = compilation_arguments.get(source_path)
 
     parsed_info = Parse(source_path, compiler_arguments).get_parsed_info()
 

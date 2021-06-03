@@ -33,7 +33,7 @@ class Parse:
         }
 
     @staticmethod
-    def is_valid_child(parent_node, child_node):
+    def _is_valid_child(parent_node, child_node):
         child = child_node.get("cursor")
         parent_filename = parent_node.get("filename")
 
@@ -117,7 +117,7 @@ class Parse:
         # Get cursor's children and recursively add their info to a dictionary, as members of the parent
         for child in cursor.get_children():
             child_node = {"cursor": child, "filename": filename, "depth": depth + 1}
-            if cls.is_valid_child(node, child_node):
+            if cls._is_valid_child(node, child_node):
                 child_parsed_info = cls.parse_node_recursive(child_node)
                 parsed_info["members"].append(child_parsed_info)
 
@@ -133,30 +133,3 @@ class Parse:
                 - The key 'members' contains the node's children's `parsed_info`
         """
         return self.parse_node_recursive(self.root_node)
-
-    # @TODO: Move the function out of this file in a separate PR
-    @staticmethod
-    def get_compilation_arguments(compilation_database_path, filename):
-        """
-        Yields the compilation commands extracted from the compilation database
-
-        Parameters:
-            - compilation_database_path: The path to `compile_commands.json`
-            - filename: The file's name to get its compilation commands
-
-        Yields:
-            - compilation commands (list): The arguments passed to the compiler
-        """
-
-        # Build a compilation database found in the given directory
-        compilation_database = clang.CompilationDatabase.fromDirectory(
-            buildDir=compilation_database_path
-        )
-        # Get compilation commands from the compilation database for the given file
-        compilation_commands = compilation_database.getCompileCommands(
-            filename=filename
-        )
-
-        for compilation_command in compilation_commands:
-            # Extract compiler arguments, excluding compiler and filename
-            yield list(compilation_command.arguments)[1:-1]
