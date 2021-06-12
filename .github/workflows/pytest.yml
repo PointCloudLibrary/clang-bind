@@ -6,7 +6,7 @@ on: [push, pull_request]
 jobs:
   Pytest:
     # The type of runner that the job will run on
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     strategy:
       matrix:
         python-version: [3.6, 3.7, 3.8, 3.9]
@@ -34,12 +34,12 @@ jobs:
       - name: Add llvm keys
         run: |
           wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
-          echo 'deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-11 main' | sudo tee -a /etc/apt/sources.list
-          echo 'deb-src http://apt.llvm.org/bionic/ llvm-toolchain-bionic-11 main' | sudo tee -a /etc/apt/sources.list
+          echo 'deb http://apt.llvm.org/focal/ llvm-toolchain-focal-12 main' | sudo tee -a /etc/apt/sources.list
+          echo 'deb-src http://apt.llvm.org/focal/ llvm-toolchain-focal-12 main' | sudo tee -a /etc/apt/sources.list
       - name: Install libclang and its python bindings
         run: |
           sudo apt-get update
-          sudo apt-get install -y libclang-11-dev python3-clang-11
+          sudo apt-get install -y libclang-12-dev python3-clang-12
 
       # Add dist-package to path to enable apt installed python3-clang import
       - name: Add dist-packages to PYTHONPATH

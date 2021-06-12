@@ -49,7 +49,7 @@ def generate_bindings(cpp_code_block, module_name, tmp_path):
         tmp_path=tmp_path, file_contents=cpp_code_block
     )
 
-    file_include = "pcl" + parsed_info["name"].rsplit("pcl")[-1]
+    file_include = "pcl" + parsed_info["cursor"]["spelling"].rsplit("pcl")[-1]
 
     # Get the binded code
     binded_code = generate.generate(module_name=module_name, parsed_info=parsed_info)
