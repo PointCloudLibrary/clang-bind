@@ -22,12 +22,12 @@ sudo apt-get install -y libclang-11-dev python3-clang-11
 
 # Demonstration
 
-1. Go to `clang-bind/bindings/python/tests/test_project/` folder
+1. Go to `tests/test_project/` folder
 2. Create a build folder
 3. Run `cmake ..`
 4. Run `make -j$(nproc)`
-5. Run `python ../../scripts/parse.py --com ./ ../src/simple.cpp`
-6. Run `python ../../scripts/generate.py --com json/src/simple.json`
+5. Run `python ../../../clang_bind/parse.py --com ./ ../src/simple.cpp`
+6. Run `python ../../../clang_bind/generate.py --com json/src/simple.json`
 
 The binding code will be available in `pybind11-gen/src` folder.
 

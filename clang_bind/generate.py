@@ -1,8 +1,7 @@
 from typing import Any, List, Dict
 import os
 
-from context import scripts
-import scripts.utils as utils
+import clang_bind.utils as utils
 
 
 class bind:

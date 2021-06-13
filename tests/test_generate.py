@@ -1,5 +1,4 @@
-from context import scripts
-import scripts.generate as generate
+import clang_bind.generate as generate
 import test_parse
 
 

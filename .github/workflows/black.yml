@@ -28,7 +28,6 @@ jobs:
       # Format with black
       - name: Format with black
         run: |
-          cd bindings/python
           black .
 
       # Diff check

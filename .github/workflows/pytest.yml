@@ -49,9 +49,7 @@ jobs:
 
       # Test with pytest
       - name: Test with pytest
-        run: cd ${_PYTHON_BINDINGS_PATH} && pytest --junitxml=${GITHUB_WORKSPACE}/result_${{ matrix.python-version }}.xml
-        env:
-          _PYTHON_BINDINGS_PATH: bindings/python
+        run: pytest --junitxml=${GITHUB_WORKSPACE}/result_${{ matrix.python-version }}.xml
 
       # Artifacts
       - name: Upload pytest test results
