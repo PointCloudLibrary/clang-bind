@@ -1,8 +1,7 @@
 import clang.cindex as clang
 
-from context import scripts
-import scripts.utils as utils
-from scripts.clang_utils import ClangUtils
+import clang_bind.utils as utils
+from clang_bind.clang_utils import ClangUtils
 
 
 class Parse:

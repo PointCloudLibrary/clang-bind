@@ -1,7 +1,5 @@
-from context import scripts
-import clang.cindex as clang
-from scripts.parse import Parse
-from scripts.compilation_database import CompilationDatabase
+from clang_bind.parse import Parse
+from clang_bind.compilation_database import CompilationDatabase
 
 
 def get_compilation_database_path(tmp_path, filepath):
