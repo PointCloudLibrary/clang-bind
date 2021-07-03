@@ -27,8 +27,8 @@ jobs:
       - name: Install pip
         run: python -m pip install --upgrade pip
 
-      - name: Install pytest
-        run: pip install pytest
+      - name: Install packages
+        run: pip install pytest treelib
 
       # Install clang and it's python inteface via apt
       - name: Add llvm keys
