@@ -10,8 +10,10 @@ def parse(tmp_path, file_contents):
     with open(source_path, "w") as f:
         f.write(str(file_contents))
 
-    tree = Parse(source_path, ARGS).get_tree()
-    tree_paths = tree.paths_to_leaves()
+    tree = Parse(source_path, ARGS).get_tree()  # parse the file into an AST
+    tree_paths = (
+        tree.paths_to_leaves()
+    )  # a list of list of nodes, representing paths from the root node to each leaf
 
     return tree, tree_paths
 
