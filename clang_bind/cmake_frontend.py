@@ -1,5 +1,42 @@
 import os
 import json
+import clang.cindex as clang
+
+
+class CompilationDatabase:
+    """
+    Build a compilation database from a given directory
+    """
+
+    def __init__(self, build_dir):
+        self.compilation_database = clang.CompilationDatabase.fromDirectory(
+            buildDir=build_dir
+        )
+
+    def get_compilation_arguments(self, filename=None):
+        """
+        Returns the compilation commands extracted from the compilation database
+
+        Parameters:
+            - filename (optional): To get compilaton commands of a file
+
+        Returns:
+            - compilation_arguments (dict): {filename: compiler arguments}
+        """
+
+        if filename:
+            # Get compilation commands from the compilation database for the given file
+            compilation_commands = self.compilation_database.getCompileCommands(
+                filename=filename
+            )
+        else:
+            # Get all compilation commands from the compilation database
+            compilation_commands = self.compilation_database.getAllCompileCommands()
+
+        return {
+            command.filename: list(command.arguments)[1:-1]
+            for command in compilation_commands
+        }
 
 
 class Codemodel:
