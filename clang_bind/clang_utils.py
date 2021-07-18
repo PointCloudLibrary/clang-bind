@@ -118,3 +118,10 @@ class ClangUtils:
             - {property_name, property}
         """
         return self.properties_dict
+
+    def get_all_functions_dict(self):
+        return {
+            **self.check_functions_dict,
+            **self.get_functions_dict,
+            **self.properties_dict,
+        }
