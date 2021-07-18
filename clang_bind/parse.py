@@ -8,7 +8,8 @@ class Node:
     def __init__(self, cursor, verbose=False):
         self.cursor = cursor
         if verbose:
-            # checks available in cindex.py via clang_utils.py
+            # Add additional information about the cursor
+            # Get values from the classes in cindex.py: `is_` methods, `get_` methods, @property values
             self.cursor_kind = ClangUtils(cursor.kind).get_all_functions_dict()
             self.cursor = ClangUtils(cursor).get_all_functions_dict()
             self.type = ClangUtils(cursor.type).get_all_functions_dict()
