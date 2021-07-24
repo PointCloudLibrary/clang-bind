@@ -2,7 +2,6 @@ import clang.cindex as clang
 from clang_bind.parse import Parse
 
 FILE = "file.cpp"
-ARGS = ["c++14"]
 
 
 def parse(tmp_path, file_contents):
@@ -10,12 +9,12 @@ def parse(tmp_path, file_contents):
     with open(source_path, "w") as f:
         f.write(str(file_contents))
 
-    tree = Parse(source_path, ARGS).get_tree()  # parse the file into an AST
-    tree_paths = (
-        tree.paths_to_leaves()
-    )  # a list of list of nodes, representing paths from the root node to each leaf
-
-    return tree, tree_paths
+    parser = Parse(source_path)
+    tree = parser.get_tree()  # parse the file into an AST
+    tree_paths = [
+        parser.get_parsed_infos_from_node_ids(path) for path in tree.paths_to_leaves()
+    ]  # a list of list of parsed infos, representing paths from the root node to each leaf
+    return parser, tree_paths
 
 
 def debug_print(tree, tree_paths):
@@ -126,16 +125,18 @@ def test_function_decl_with_parameters(tmp_path):
     file_contents = """
     int aFunction(int firstParam, double secondParam);
     """
-    tree, tree_paths = parse(tmp_path=tmp_path, file_contents=file_contents)
+    parser, tree_paths = parse(tmp_path=tmp_path, file_contents=file_contents)
 
     function_decl = tree_paths[0][1]
     assert function_decl.cursor.kind == clang.CursorKind.FUNCTION_DECL
     assert function_decl.cursor.spelling == "aFunction"
     assert function_decl.cursor.result_type.kind == clang.TypeKind.INT
 
-    function_decl_children = [
-        child.identifier for child in tree.children(function_decl)
-    ]
+    function_decl_children = parser.get_parsed_infos_from_node_ids(
+        parser.get_node_ids_from_nodes(
+            parser.get_children_nodes_from_parent_parsed_info(function_decl)
+        )
+    )
 
     first_param = function_decl_children[0]
     assert first_param.cursor.spelling == "firstParam"
