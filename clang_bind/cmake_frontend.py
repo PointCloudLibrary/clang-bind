@@ -42,25 +42,13 @@ class Target:
         with open(target_file) as f:
             self.target = json.load(f)
 
-    def get_target(self):
-        """Get target.
-
-        :return: JSON target
-        :rtype: dict
-        """
-        if not self.target:
-            self.set_target()
-        return self.target
-
     def get_artifacts(self):
         """Get artifacts from the target.
 
         :return: Artifacts' paths
         :rtype: list
         """
-        return [
-            artifact.get("path") for artifact in self.get_target().get("artifacts", [])
-        ]
+        return [artifact.get("path") for artifact in self.target.get("artifacts", [])]
 
     def get_commands(self):
         """Get commands from the target.
@@ -68,7 +56,7 @@ class Target:
         :return: Commands concerning the build system.
         :rtype: list
         """
-        return self.get_target().get("backtraceGraph", {}).get("commands")
+        return self.target.get("backtraceGraph", {}).get("commands")
 
     def get_compile_groups(self):
         """Get compile groups from the target.
@@ -92,7 +80,7 @@ class Target:
                 ],
                 "language": compile_group.get("language"),
             }
-            for compile_group in self.get_target().get("compileGroups", [])
+            for compile_group in self.target.get("compileGroups", [])
         ]
 
     def get_dependencies(self):
@@ -102,8 +90,7 @@ class Target:
         :rtype: list
         """
         return [
-            dependency.get("id")
-            for dependency in self.get_target().get("dependencies", [])
+            dependency.get("id") for dependency in self.target.get("dependencies", [])
         ]
 
     def get_files(self):
@@ -112,7 +99,7 @@ class Target:
         :return: Files concerning the build system.
         :rtype: list
         """
-        return self.get_target().get("backtraceGraph", {}).get("files")
+        return self.target.get("backtraceGraph", {}).get("files")
 
     def get_folder(self):
         """Get folder from the target.
@@ -120,7 +107,7 @@ class Target:
         :return: Folder of the target.
         :rtype: str
         """
-        return self.get_target().get("folder", {}).get("name")
+        return self.target.get("folder", {}).get("name")
 
     def get_id(self):
         """Get id from the target.
@@ -128,7 +115,7 @@ class Target:
         :return: ID of the target
         :rtype: str
         """
-        return self.get_target().get("id")
+        return self.target.get("id")
 
     def get_install(self):
         """Get install info from the target.
@@ -136,7 +123,7 @@ class Target:
         :return: Install info
         :rtype: dict
         """
-        install = self.get_target().get("install", {})
+        install = self.target.get("install", {})
         return {
             "destinations": [
                 destination.get("path")
@@ -151,7 +138,7 @@ class Target:
         :return: Link info
         :rtype: dict
         """
-        link = self.get_target().get("link", {})
+        link = self.target.get("link", {})
         command_fragments = link.get("commandFragments", [])
         return {
             "flags_fragments": [
@@ -173,7 +160,7 @@ class Target:
         :return: Name of the target
         :rtype: str
         """
-        return self.get_target().get("name")
+        return self.target.get("name")
 
     def get_name_on_disk(self):
         """Get name on disk from the target.
@@ -181,7 +168,7 @@ class Target:
         :return: Name on disk of the target
         :rtype: str
         """
-        return self.get_target().get("nameOnDisk")
+        return self.target.get("nameOnDisk")
 
     def get_paths(self):
         """Get paths from the target.
@@ -189,7 +176,7 @@ class Target:
         :return: Paths of the target.
         :rtype: dict
         """
-        return self.get_target().get("paths")
+        return self.target.get("paths")
 
     def get_sources(self):
         """Get sources from the target.
@@ -197,7 +184,7 @@ class Target:
         :return: Sources of the target.
         :rtype: list
         """
-        return [sources.get("path") for sources in self.get_target().get("sources", [])]
+        return [sources.get("path") for sources in self.target.get("sources", [])]
 
     def get_type(self):
         """Get type from the target.
@@ -205,7 +192,7 @@ class Target:
         :return: Type of the target.
         :rtype: str
         """
-        return self.get_target().get("type")
+        return self.target.get("type")
 
 
 class CMakeFileAPI:
