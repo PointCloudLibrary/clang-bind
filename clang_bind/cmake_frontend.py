@@ -243,29 +243,24 @@ class CMakeFileAPI:
         )
         return list(map(lambda target: target.get_name(), library_targets_objs))
 
-    def get_dependencies(self, target=None):
-        """Get dependencies of the target(s).
+    def get_dependencies(self, target):
+        """Get dependencies of the target.
 
-        :param target: Target to get the dependencies, defaults to None
-        :type target: str, optional
-        :return: Dependencies of the target(s).
-        :rtype: dict
+        :param target: Target to get the dependencies of.
+        :type target: str
+        :return: Dependencies of the target.
+        :rtype: list
         """
-        targets = [self.targets.get(target)] if target else self.targets.values()
-        return {
-            target.get_name(): list(
-                map(lambda x: x.split("::")[0], target.get_dependencies())
-            )
-            for target in targets
-        }
+        return list(
+            map(lambda x: x.split("::")[0], self.targets.get(target).get_dependencies())
+        )
 
-    def get_sources(self, target=None):
+    def get_sources(self, target):
         """Get sources of the target(s).
 
-        :param target: Target to get the dependencies, defaults to None
-        :type target: str, optional
-        :return: Sources of the target(s).
-        :rtype: dict
+        :param target: Target to get the sources of.
+        :type target: str
+        :return: Sources of the target.
+        :rtype: list
         """
-        targets = [self.targets.get(target)] if target else self.targets.values()
-        return {target.get_name(): target.get_sources() for target in targets}
+        return self.targets.get(target).get_sources()
