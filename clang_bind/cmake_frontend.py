@@ -15,28 +15,19 @@ class CompilationDatabase:
             buildDir=build_dir
         )
 
-    def get_compilation_arguments(self, filename=None):
-        """Returns the compilation commands extracted from the compilation database
+    def get_compilation_arguments(self, filename):
+        """Returns the compilation commands extracted from the compilation database.
 
-        :param filename: Get compilation arguments of the file, defaults to None: get for all files
-        :type filename: str, optional
-        :return: ilenames and their compiler arguments: {filename: compiler arguments}
-        :rtype: dict
+        :param filename: Get compilation arguments of the file.
+        :type filename: str
+        :return: Compiler arguments.
+        :rtype: list
         """
 
-        if filename:
-            # Get compilation commands from the compilation database for the given file
-            compilation_commands = self.compilation_database.getCompileCommands(
-                filename=filename
-            )
-        else:
-            # Get all compilation commands from the compilation database
-            compilation_commands = self.compilation_database.getAllCompileCommands()
-
-        return {
-            command.filename: list(command.arguments)[1:-1]
-            for command in compilation_commands
-        }
+        compilation_arguments = []
+        for command in self.compilation_database.getCompileCommands(filename=filename):
+            compilation_arguments += list(command.arguments)[1:-1]
+        return compilation_arguments
 
 
 class Target:
