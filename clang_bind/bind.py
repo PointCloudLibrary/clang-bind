@@ -5,7 +5,7 @@ from clang_bind.parse import Parse
 
 
 class Bind:
-    """Class to bind cpp modules.
+    """Class to bind C++ targets.
 
     :param source_dir: Source dir of cpp library.
     :type source_dir: str
@@ -15,10 +15,10 @@ class Bind:
     :type output_dir: str
     :param output_module_name: Module name in python
     :type output_module_name: str
-    :param cpp_modules: List of cpp modules to bind, defaults to []: bind all.
-    :type cpp_modules: list, optional
-    :param allow_inclusions_from_other_modules: Allow inclusions from other modules, which are not specified in cpp_modules, defaults to True
-    :type allow_inclusions_from_other_modules: bool, optional
+    :param cpp_targets: List of C++ targets to bind, defaults to []: bind all.
+    :type cpp_targets: list, optional
+    :param allow_inclusions_from_other_targets: Allow inclusions from other targets, which are not specified in cpp_targets, defaults to True
+    :type allow_inclusions_from_other_targets: bool, optional
     """
 
     def __init__(
@@ -27,16 +27,16 @@ class Bind:
         build_dir,
         output_dir,
         output_module_name,
-        cpp_modules=[],
-        allow_inclusions_from_other_modules=True,
+        cpp_targets=[],
+        allow_inclusions_from_other_targets=True,
     ):
-        all_cpp_modules = CMakeFileAPI(build_dir).get_library_targets()
-        if not cpp_modules:
-            cpp_modules = all_cpp_modules  # bind all cpp modules
+        all_cpp_targets = CMakeFileAPI(build_dir).get_library_targets()
+        if not cpp_targets:
+            cpp_targets = all_cpp_targets  # bind all C++ targets
 
         all_inclusion_sources = []
-        for module in all_cpp_modules:  # for all cpp modules, populate the variable
-            sources = CMakeFileAPI(build_dir).get_sources(module)  # module's sources
+        for target in all_cpp_targets:  # for all C++ targets, populate the variable
+            sources = CMakeFileAPI(build_dir).get_sources(target)  # target's sources
             cpp_sources = list(
                 filter(lambda source: source.endswith(".cpp"), sources)
             )  # sources ending with .cpp
@@ -45,21 +45,21 @@ class Bind:
             )  # other sources like .h and .hpp files
 
         self.binding_db = {}  # binding database
-        for module in cpp_modules:
-            sources = CMakeFileAPI(build_dir).get_sources(module)  # module's sources
+        for target in cpp_targets:
+            sources = CMakeFileAPI(build_dir).get_sources(target)  # target's sources
             cpp_sources = list(
                 filter(lambda source: source.endswith(".cpp"), sources)
             )  # sources ending with .cpp
             inclusion_sources = (
                 all_inclusion_sources
-                if allow_inclusions_from_other_modules
+                if allow_inclusions_from_other_targets
                 else list(set(sources) - set(cpp_sources))
             )  # other sources like .h and .hpp files
 
-            self.binding_db[module] = {
-                "source_dir": source_dir,  # source dir containing cpp modules
+            self.binding_db[target] = {
+                "source_dir": source_dir,  # source dir containing C++ targets
                 "output_dir": output_dir,  # output dir
-                "inclusion_sources": inclusion_sources,  # inclusions for the module
+                "inclusion_sources": inclusion_sources,  # inclusions for the target
                 "files": [  # list of files' information
                     {
                         "source": cpp_source,
@@ -73,14 +73,14 @@ class Bind:
 
     def _parse(self):
         """For all input files, get the parsed tree and update the db."""
-        for module in self.binding_db.values():
-            source_dir = module.get("source_dir")
+        for target in self.binding_db.values():
+            source_dir = target.get("source_dir")
             inclusion_sources = [
                 str(Path(source_dir, inclusion_source))
-                for inclusion_source in module.get("inclusion_sources")
+                for inclusion_source in target.get("inclusion_sources")
             ]  # string full paths of inclusion sources
 
-            for file in module.get("files"):
+            for file in target.get("files"):
                 parsed_tree = Parse(
                     Path(source_dir, file.get("source")),
                     inclusion_sources,
@@ -96,7 +96,7 @@ class Bind:
                 #
                 # - To save the JSONs:
                 # json_output_path = Path(
-                #     module.get("output_dir"),
+                #     target.get("output_dir"),
                 #     "parsed",
                 #     file.get("source").replace(".cpp", ".json"),
                 # )
