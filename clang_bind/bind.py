@@ -57,11 +57,12 @@ class Bind:
             )  # other sources like .h and .hpp files
 
             self.binding_db[module] = {
+                "source_dir": source_dir,  # source dir containing cpp modules
+                "output_dir": output_dir,  # output dir
                 "inclusion_sources": inclusion_sources,  # inclusions for the module
                 "files": [  # list of files' information
                     {
-                        "source_path": Path(source_dir, cpp_source),
-                        "output_path": Path(output_dir, cpp_source),
+                        "source": cpp_source,
                         "compiler_arguments": CompilationDatabase(
                             build_dir
                         ).get_compilation_arguments(cpp_source),
@@ -73,17 +74,34 @@ class Bind:
     def _parse(self):
         """For all input files, get the parsed tree and update the db."""
         for module in self.binding_db.values():
+            source_dir = module.get("source_dir")
+            inclusion_sources = [
+                str(Path(source_dir, inclusion_source))
+                for inclusion_source in module.get("inclusion_sources")
+            ]  # string full paths of inclusion sources
+
             for file in module.get("files"):
-                # for each file, update the db with the parsed tree
-                file.update(
-                    {
-                        "parsed_tree": Parse(
-                            file.get("source_path"),
-                            module.get("inclusion_sources"),
-                            file.get("compiler_arguments"),
-                        ).get_tree()
-                    }
-                )
+                parsed_tree = Parse(
+                    Path(source_dir, file.get("source")),
+                    inclusion_sources,
+                    file.get("compiler_arguments"),
+                ).get_tree()
+
+                file.update({"parsed_tree": parsed_tree})  # update db
+
+                # Debugging:
+                #
+                # - To print the trees:
+                # parsed_tree.show()
+                #
+                # - To save the JSONs:
+                # json_output_path = Path(
+                #     module.get("output_dir"),
+                #     "parsed",
+                #     file.get("source").replace(".cpp", ".json"),
+                # )
+                # json_output_path.parent.mkdir(parents=True, exist_ok=True)
+                # parsed_tree.save2file(json_output_path)
 
     def bind(self):
         """Function to bind the input files."""
