@@ -35,7 +35,8 @@ class Parse:
     :type compiler_arguments: list, optional
     """
 
-    def __init__(self, file, compiler_arguments=[]):
+    def __init__(self, file, inclusion_sources=[], compiler_arguments=[]):
+        self.inclusion_sources = inclusion_sources
         self._parsed_info_map = {}
         index = clang.Index.create()
         """
@@ -57,27 +58,31 @@ class Parse:
         self._construct_tree(self.root_node)
 
     @staticmethod
-    def is_cursor_in_file(cursor, filename):
-        """Checks if the cursor belongs in the file.
+    def is_cursor_in_files(cursor, files):
+        """Checks if the cursor belongs in the files.
 
         :param cursor: An object of :class:`clang.cindex.Cursor`
         :type cursor: class:`clang.cindex.Cursor`
-        :param filename: Filename to search the cursor
-        :type filename: str
-        :return: `True` if cursor in file, else `False`
+        :param files: Filepaths to search the cursor
+        :type files: list
+        :return: `True` if cursor in files, else `False`
         :rtype: bool
         """
-        return cursor.location.file and cursor.location.file.name == filename
+        return cursor.location.file and cursor.location.file.name in files
 
     def _is_valid_child(self, child_cursor):
-        """Checks if the child is valid (child should be in the same file as the parent).
+        """Checks if the child is valid:
+        - Either child should be in the same file as the parent or,
+        - the child should be in the list of valid inclusion sources
 
         :param child_cursor: The child cursor to check, an object of :class:`clang.cindex.Cursor`
         :type child_cursor: class:`clang.cindex.Cursor`
         :return: `True` if child cursor in file, else `False`
         :rtype: bool
         """
-        return self.is_cursor_in_file(child_cursor, self.filename)
+        return self.is_cursor_in_files(
+            child_cursor, [self.filename, *self.inclusion_sources]
+        )
 
     def _construct_tree(self, node):
         """Recursively generates tree by traversing the AST of the node.
