@@ -95,13 +95,15 @@ class Bind:
                 # parsed_tree.show()
                 #
                 # - To save the JSONs:
+                # import json
                 # json_output_path = Path(
                 #     target.get("output_dir"),
                 #     "parsed",
                 #     file.get("source").replace(".cpp", ".json"),
                 # )
                 # json_output_path.parent.mkdir(parents=True, exist_ok=True)
-                # parsed_tree.save2file(json_output_path)
+                # with open(json_output_path, 'w') as f:
+                #     json.dump(parsed_tree.to_dict(), f, indent=4)
 
     def bind(self):
         """Function to bind the input files."""
