@@ -5,3 +5,4 @@ pybind11==2.6.0
 black==20.8b1
 pytest==6.1.2
 cmake==3.18.2
+treelib==1.6.1
