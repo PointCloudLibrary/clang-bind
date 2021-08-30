@@ -4,39 +4,38 @@ from pathlib import Path
 
 
 class CompilationDatabase:
-    """Class to get information from a CMake compilation database."""
+    """Class to get information from a CMake compilation database.
+
+    :param build_dir: Build directory path, where compile_commands.json is present.
+    :type build_dir: str
+    """
 
     def __init__(self, build_dir):
         self.compilation_database = clang.CompilationDatabase.fromDirectory(
             buildDir=build_dir
         )
 
-    def get_compilation_arguments(self, filename=None):
-        """Returns the compilation commands extracted from the compilation database
+    def get_compilation_arguments(self, filename):
+        """Returns the compilation commands extracted from the compilation database.
 
-        :param filename: Get compilation arguments of the file, defaults to None: get for all files
-        :type filename: str, optional
-        :return: ilenames and their compiler arguments: {filename: compiler arguments}
-        :rtype: dict
+        :param filename: Get compilation arguments of the file.
+        :type filename: str
+        :return: Compiler arguments.
+        :rtype: list
         """
 
-        if filename:
-            # Get compilation commands from the compilation database for the given file
-            compilation_commands = self.compilation_database.getCompileCommands(
-                filename=filename
-            )
-        else:
-            # Get all compilation commands from the compilation database
-            compilation_commands = self.compilation_database.getAllCompileCommands()
-
-        return {
-            command.filename: list(command.arguments)[1:-1]
-            for command in compilation_commands
-        }
+        compilation_arguments = []
+        for command in self.compilation_database.getCompileCommands(filename=filename):
+            compilation_arguments += list(command.arguments)[1:-1]
+        return compilation_arguments
 
 
 class Target:
-    """Class to get information about targets found from the CMake file API."""
+    """Class to get information about targets found from the CMake file API.
+
+    :param target_file: Target file path.
+    :type target_file: str
+    """
 
     def __init__(self, target_file):
         with open(target_file) as f:
@@ -196,7 +195,11 @@ class Target:
 
 
 class CMakeFileAPI:
-    """CMake File API front end."""
+    """CMake File API front end.
+
+    :param build_dir: Build directory path, where .cmake directory is present.
+    :type build_dir: str
+    """
 
     def __init__(self, build_dir):
         self.reply_dir = Path(build_dir, ".cmake", "api", "v1", "reply")
@@ -220,29 +223,35 @@ class CMakeFileAPI:
                 target_obj = Target(Path(self.reply_dir, target_file))
                 self.targets[target_obj.get_name()] = target_obj
 
-    def get_dependencies(self, target=None):
-        """Get dependencies of the target(s).
+    def get_library_targets(self):
+        """Get all library targets' names.
 
-        :param target: Target to get the dependencies, defaults to None
-        :type target: str, optional
-        :return: Dependencies of the target(s).
-        :rtype: dict
+        :return: Library targets.
+        :rtype: list
         """
-        targets = [self.targets.get(target)] if target else self.targets.values()
-        return {
-            target.get_name(): list(
-                map(lambda x: x.split("::")[0], target.get_dependencies())
-            )
-            for target in targets
-        }
+        library_targets_objs = filter(
+            lambda target: target.get_type() == "SHARED_LIBRARY", self.targets.values()
+        )
+        return list(map(lambda target: target.get_name(), library_targets_objs))
 
-    def get_sources(self, target=None):
+    def get_dependencies(self, target):
+        """Get dependencies of the target.
+
+        :param target: Target to get the dependencies of.
+        :type target: str
+        :return: Dependencies of the target.
+        :rtype: list
+        """
+        return list(
+            map(lambda x: x.split("::")[0], self.targets.get(target).get_dependencies())
+        )
+
+    def get_sources(self, target):
         """Get sources of the target(s).
 
-        :param target: Target to get the dependencies, defaults to None
-        :type target: str, optional
-        :return: Sources of the target(s).
-        :rtype: dict
+        :param target: Target to get the sources of.
+        :type target: str
+        :return: Sources of the target.
+        :rtype: list
         """
-        targets = [self.targets.get(target)] if target else self.targets.values()
-        return {target.get_name(): target.get_sources() for target in targets}
+        return self.targets.get(target).get_sources()
